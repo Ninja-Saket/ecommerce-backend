@@ -16,4 +16,14 @@ const createOrUpdateUser = async (req, res) => {
     }
 }
 
-export {createOrUpdateUser}
+const currentUser = async(req, res) => {
+    const user = await User.findOne({email : req.user.email})
+    if(user){
+        return res.json(user)
+    }else{
+        return res.status(401).json({
+            err : 'User not exist'
+        })
+    }
+}
+export {createOrUpdateUser, currentUser}

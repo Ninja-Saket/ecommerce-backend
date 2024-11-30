@@ -3,9 +3,10 @@ const router = express.Router()
 // middlewares
 import {authCheck} from '../middlewares/auth.js'
 // controllers
-import { createOrUpdateUser } from '../controllers/auth.js'
+import { createOrUpdateUser, currentUser } from '../controllers/auth.js'
 // route
 router.post('/create-or-update-user', authCheck, createOrUpdateUser)
+router.post('/current-user', authCheck, currentUser)
 
 // testMiddleware
 const testMiddleware = (req,res,next) => {
