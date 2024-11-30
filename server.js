@@ -1,10 +1,11 @@
-const express = require('express')
-const mongoose = require('mongoose')
-const morgan = require('morgan')
-const bodyParser = require('body-parser')
-const cors = require('cors')
-const {readdirSync} = require('fs')
-require('dotenv').config()
+import express from 'express'
+import mongoose from 'mongoose'
+import morgan from 'morgan'
+import bodyParser from 'body-parser'
+import cors from 'cors'
+import {readdirSync} from 'fs'
+import {config} from 'dotenv'
+config()
 
 // app
 const app = express()
@@ -19,7 +20,10 @@ app.use(morgan('dev'))
 app.use(bodyParser.json())
 app.use(cors())
 // routes middleware
-readdirSync('./routes').map((r)=> app.use('/api',require('./routes/'+r)))
+readdirSync('./routes').forEach(async (file) => {
+    const route = await import('./routes/' + file);
+    app.use('/api', route.default);
+});
 
 // port
 const port = process.env.PORT || 8000;

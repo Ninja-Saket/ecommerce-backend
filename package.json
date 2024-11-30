@@ -1,4 +1,5 @@
 {
+  "type" : "module",
   "name": "server",
   "version": "1.0.0",
   "main": "index.js",
@@ -17,8 +18,10 @@
     "express-jwt": "^8.4.1",
     "firebase-admin": "^13.0.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.8.2",
+    "mongodb": "^6.11.0",
+    "mongoose": "^8.8.3",
     "morgan": "^1.10.0",
-    "nodemon": "^3.1.7"
+    "nodemon": "^3.1.7",
+    "punycode": "^2.3.1"
   }
 }
