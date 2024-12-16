@@ -1,4 +1,5 @@
 import Category from "../models/category.js"
+import SubCategory from "../models/subCategory.js"
 import slugify from 'slugify'
 
 const create = async (req, res) => {
@@ -49,10 +50,20 @@ const remove = async (req, res) => {
     }
 }
 
+const getSubCategories = async (req, res) => {
+    try{
+        const result = await SubCategory.find({parent : req.params._id}).exec()
+        res.json(result)
+    }catch(err){
+        res.status(400).send('Fetch SubCategories failed')
+    }
+}
+
 export {
     create,
     list,
     read,
     update, 
-    remove
+    remove,
+    getSubCategories
 }
