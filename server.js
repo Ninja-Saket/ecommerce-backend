@@ -17,8 +17,9 @@ mongoose.connect(process.env.DATABASE_URL).then(()=> console.log('Db connected!!
 
 // middlewares
 app.use(morgan('dev'))
-app.use(bodyParser.json())
+app.use(bodyParser.json({limit : '50mb'}))
 app.use(cors())
+
 // routes middleware
 readdirSync('./routes').forEach(async (file) => {
     const route = await import('./routes/' + file);
