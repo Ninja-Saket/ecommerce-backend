@@ -7,6 +7,6 @@ import { create,update,list,read,remove } from '../controllers/product.js'
 // route
 
 router.post('/product', authCheck, adminCheck, create)
-router.get('/products', list)
+router.get('/products/:count', list)
 
 export default router
