@@ -32,6 +32,16 @@ const list = async (req, res) => {
 
 const read = async (req, res) => {};
 
-const remove = async (req, res) => {};
+const remove = async (req, res) => {
+  try{
+    const deleted = await Product.findOneAndDelete({
+      slug : req.params.slug
+    }).exec()
+    res.json(deleted)
+  }catch(err){
+    console.log(err)
+    return res.status(400).send("Product Delete Failed")
+  }
+};
 
 export { create, update, list, read, remove };
