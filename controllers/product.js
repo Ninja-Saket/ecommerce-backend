@@ -62,4 +62,15 @@ const remove = async (req, res) => {
   }
 };
 
-export { create, update, list, read, remove };
+const sortedList = async (req, res) => {
+  try{
+    const {sort, order, limit} = req.body
+    const products = await Product.find({}).populate('category').populate('subCategories').sort([[sort, order]]).limit(limit).exec()
+    res.json(products)
+  }catch(err){
+    console.log(err)
+    return res.status(400).send("Product fetch in sorted order failed")
+  }
+}
+
+export { create, update, list, read, remove, sortedList };
