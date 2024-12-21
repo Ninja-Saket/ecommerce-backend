@@ -14,7 +14,17 @@ const create = async (req, res) => {
   }
 };
 
-const update = async (req, res) => {};
+const update = async (req, res) => {
+  try{
+    if(req.body.title){
+      req.body.slug = slugify(req.body.title)
+    }
+    const updatedProduct = await Product.findOneAndUpdate({_id : req.body._id}, req.body, {new : true}).exec()
+    res.json(updatedProduct)
+  }catch(err){
+    res.status(400).send({err : err.message})
+  }
+};
 
 const list = async (req, res) => {
   try {
@@ -30,7 +40,15 @@ const list = async (req, res) => {
   }
 };
 
-const read = async (req, res) => {};
+const read = async (req, res) => {
+  try{
+    const product = await Product.findOne({slug : req.params.slug}).populate('category').populate('subCategories').exec()
+    res.json(product)
+  }catch(err){
+    console.log(err)
+    return res.status(400).send("Fetch Single Product Failed")
+  }
+};
 
 const remove = async (req, res) => {
   try{
