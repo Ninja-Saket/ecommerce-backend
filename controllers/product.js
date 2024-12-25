@@ -151,4 +151,21 @@ const productStar = async (req, res) => {
   }
 };
 
-export { create, update, list, read, remove, sortedList, productsCount, productStar };
+/**
+ * Returns a list of product related to given product (products have same category as given product)
+ */
+const listRelated = async(req, res) => {
+  const product = await Product.findById(req.params.productId).exec()
+  const related = await Product.find({
+    _id : {$ne : product._id},
+    category : product.category
+  }).limit(3)
+  .populate('category')
+  .populate('subCategories')
+  .populate('ratings.postedBy')
+  .exec()
+
+  res.json(related)
+}
+
+export { create, update, list, read, remove, sortedList, productsCount, productStar, listRelated};
