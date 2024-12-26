@@ -3,7 +3,7 @@ const router = express.Router()
 // middlewares
 import {authCheck, adminCheck} from '../middlewares/auth.js'
 // controllers
-import { create,update,list,read,remove, sortedList, productsCount, productStar, listRelated, listRelatedByCategory } from '../controllers/product.js'
+import { create,update,list,read,remove, sortedList, productsCount, productStar, listRelated, listRelatedByCategory, listRelatedBySubCategory } from '../controllers/product.js'
 // route
 
 router.post('/product', authCheck, adminCheck, create)
@@ -16,5 +16,6 @@ router.post('/products', sortedList)
 router.put('/product/star/:productId', authCheck, productStar)
 router.get('/product/related/:productId', listRelated)
 router.get('/product/relatedbycategory/:categoryId', listRelatedByCategory)
+router.get('/product/relatedbysubcategory/:subCategoryId', listRelatedBySubCategory)
 
 export default router
