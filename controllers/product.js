@@ -168,4 +168,10 @@ const listRelated = async(req, res) => {
   res.json(related)
 }
 
-export { create, update, list, read, remove, sortedList, productsCount, productStar, listRelated};
+
+const listRelatedByCategory = async(req, res) => {
+  const relatedProducts = await Product.find({category : req.params.categoryId}).populate('category').exec();
+  res.json(relatedProducts)
+}
+
+export { create, update, list, read, remove, sortedList, productsCount, productStar, listRelated, listRelatedByCategory};
