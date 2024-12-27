@@ -179,9 +179,23 @@ const listRelatedBySubCategory = async(req, res) => {
   res.json(relatedProducts)
 }
 
-const handleQuery = async (req, res, query) => {
+const handleQuery = async (query) => {
   const products = await Product.find({$text : {$search : query}}).populate('category').populate('subCategories').populate('ratings.postedBy').exec()
   return products
+}
+
+const handlePrice = async(price) => {
+  try{
+    const products = await Product.find({
+      price : {
+        $gte : price[0],
+        $lte : price[1]
+      }
+    })
+    return products;
+  }catch(err){
+    console.log(err)
+  }
 }
 
 /**
@@ -190,10 +204,15 @@ const handleQuery = async (req, res, query) => {
 const listWithSearchFilters = async (req, res) => {
   const {query, price} = req.body
   if(query){
-    const result = await handleQuery(req, res, query)
+    const result = await handleQuery(query)
     res.json(result)
   }else if(query == ''){
     const result = await Product.find().exec();
+    res.json(result)
+  }
+  if(!!price){
+    console.log('Price :--> ', price)
+    const result = await handlePrice(price)
     res.json(result)
   }
 }
