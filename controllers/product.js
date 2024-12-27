@@ -179,4 +179,22 @@ const listRelatedBySubCategory = async(req, res) => {
   res.json(relatedProducts)
 }
 
-export { create, update, list, read, remove, sortedList, productsCount, productStar, listRelated, listRelatedByCategory, listRelatedBySubCategory};
+const handleQuery = async (req, res, query) => {
+  const products = await Product.find({$text : {$search : query}}).populate('category').populate('subCategories').populate('ratings.postedBy').exec()
+  res.json(products)
+}
+
+/**
+ *  List products after applying search filters
+ */
+const listWithSearchFilters = async (req, res) => {
+  const {query} = req.body
+
+  if(query){
+    console.log('Search Query : ', query)
+    const result = await handleQuery(req, res, query)
+  }
+
+}
+
+export { create, update, list, read, remove, sortedList, productsCount, productStar, listRelated, listRelatedByCategory, listRelatedBySubCategory, listWithSearchFilters};
