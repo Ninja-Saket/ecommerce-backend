@@ -234,32 +234,64 @@ const handleStar = async(stars)=> {
   return result
 }
 
+const handleSubCategories = async (subCategory)=> {
+  const result = await Product.find({subCategories : subCategory}).populate('category').populate('subCategories').populate('ratings.postedBy').exec()
+  return result
+}
+
+const handleShipping = async(shipping)=> {
+  const result = await Product.find({shipping}).populate('category').populate('subCategories').populate('ratings.postedBy').exec()
+  return result
+}
+
+const handleColor = async (color) => {
+  const result = await Product.find({color}).populate('category').populate('subCategories').populate('ratings.postedBy').exec()
+  return result
+}
+
+const handleBrand = async (brand) => {
+  const result = await Product.find({brand}).populate('category').populate('subCategories').populate('ratings.postedBy').exec()
+  return result
+}
+
 /**
  *  List products after applying search filters
  */
 const listWithSearchFilters = async (req, res) => {
-  const {query, price, category, stars} = req.body
-  if(query){
+  const {query, price, category, stars, subCategory, shipping, color, brand} = req.body
+  if(!!query){
     const result = await handleQuery(query)
     res.json(result)
-  }else if(query == ''){
-    const result = await Product.find().exec();
-    res.json(result)
-  }
-  if(!!price){
+  }else if(!!price){
     console.log('Price :--> ', price)
     const result = await handlePrice(price)
     res.json(result)
-  }
-  if(!!category){
+  }else if(!!category){
     console.log('Category :--> ', category)
     const result = await handleCategory(category)
     res.json(result)
-  }
-
-  if(!!stars){
+  }else if(!!stars){
     console.log('Stars :--> ', stars)
     const result = await handleStar(stars)
+    res.json(result)
+  }else if(!!subCategory){
+    console.log('SubCategories :--> ', subCategory)
+    const result = await handleSubCategories(subCategory)
+    res.json(result)
+  }else if(!!shipping){
+    console.log('Shipping :-->', shipping)
+    const result = await handleShipping(shipping)
+    res.json(result)
+  }else if(!!color){
+    console.log('Color :-->', color)
+    const result = await handleColor(color)
+    res.json(result)
+  }else if(!!brand){
+    console.log('Brand :-->', brand)
+    const result = await handleBrand(brand)
+    res.json(result)
+  }else{
+    const result = await Product.find().exec();
     res.json(result)
   }
 }
