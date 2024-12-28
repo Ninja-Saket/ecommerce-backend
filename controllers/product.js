@@ -200,18 +200,45 @@ const handlePrice = async(price) => {
 
 const handleCategory = async (category) => {
   try{
-    const result = await Product.find({category}).populate('category').populate('subCategories').populate('ratings.postedBy').exec()
+    const result = await Product.find({category : {$in : category}}).populate('category').populate('subCategories').populate('ratings.postedBy').exec()
     return result
   }catch(err){
     console.log(err)
   }
 }
 
+const handleStar = async(stars)=> {
+  const pipeline = [
+    {
+      $project : {
+        document : "$$ROOT",
+        floorAverage : {
+          $floor : {
+            $avg : "$ratings.star"
+          }
+        }
+      }
+    },
+    {
+      $match : {floorAverage : stars}
+    }, {
+      $project : {
+        _id : 1
+      }
+    }
+  ]
+
+  const aggresult = await Product.aggregate(pipeline)
+  console.log('AggResult ',aggresult)
+  const result = await Product.find({_id : { $in : aggresult}}).populate('category').populate('subCategories').populate('ratings.postedBy').exec()
+  return result
+}
+
 /**
  *  List products after applying search filters
  */
 const listWithSearchFilters = async (req, res) => {
-  const {query, price, category} = req.body
+  const {query, price, category, stars} = req.body
   if(query){
     const result = await handleQuery(query)
     res.json(result)
@@ -227,6 +254,12 @@ const listWithSearchFilters = async (req, res) => {
   if(!!category){
     console.log('Category :--> ', category)
     const result = await handleCategory(category)
+    res.json(result)
+  }
+
+  if(!!stars){
+    console.log('Stars :--> ', stars)
+    const result = await handleStar(stars)
     res.json(result)
   }
 }
