@@ -191,8 +191,17 @@ const handlePrice = async(price) => {
         $gte : price[0],
         $lte : price[1]
       }
-    })
+    }).populate('category').populate('subCategories').populate('ratings.postedBy').exec()
     return products;
+  }catch(err){
+    console.log(err)
+  }
+}
+
+const handleCategory = async (category) => {
+  try{
+    const result = await Product.find({category}).populate('category').populate('subCategories').populate('ratings.postedBy').exec()
+    return result
   }catch(err){
     console.log(err)
   }
@@ -202,7 +211,7 @@ const handlePrice = async(price) => {
  *  List products after applying search filters
  */
 const listWithSearchFilters = async (req, res) => {
-  const {query, price} = req.body
+  const {query, price, category} = req.body
   if(query){
     const result = await handleQuery(query)
     res.json(result)
@@ -213,6 +222,11 @@ const listWithSearchFilters = async (req, res) => {
   if(!!price){
     console.log('Price :--> ', price)
     const result = await handlePrice(price)
+    res.json(result)
+  }
+  if(!!category){
+    console.log('Category :--> ', category)
+    const result = await handleCategory(category)
     res.json(result)
   }
 }
