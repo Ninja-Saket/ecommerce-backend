@@ -1,5 +1,5 @@
 import mongoose from "mongoose"
-const couponSchema = mongoose.Schema({
+const couponSchema = new mongoose.Schema({
     name : {
         type : String,
         trim : true,
