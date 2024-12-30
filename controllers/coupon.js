@@ -1,8 +1,8 @@
 import Coupon from "../models/coupon.js";
 const create = async (req, res) => {
   try {
-    const { name, expiry, discount } = req.body;
-    const result = await new Coupon({ name, expiry, discount }).save();
+    const { coupon } = req.body;
+    const result = await new Coupon(coupon).save();
     res.json(result);
   } catch (err) {
     console.log(err);
