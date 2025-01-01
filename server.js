@@ -18,6 +18,7 @@ mongoose.connect(process.env.DATABASE_URL).then(()=> console.log('Db connected!!
 // middlewares
 app.use(morgan('dev'))
 app.use(bodyParser.json({limit : '50mb'}))
+app.use(bodyParser.urlencoded({extended : true}))
 app.use(cors())
 
 // routes middleware
