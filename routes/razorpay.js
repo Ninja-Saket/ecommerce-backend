@@ -6,6 +6,6 @@ const router = express.Router()
 import {authCheck} from '../middlewares/auth.js'
 
 router.post('/create-razorpay-order', authCheck, createRazorpayOrder)
-router.post('/payment-verification', verifyPayment)
+router.post('/payment-verification', authCheck, verifyPayment)
 
 export default router

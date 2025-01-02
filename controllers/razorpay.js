@@ -4,6 +4,7 @@ import Cart from '../models/cart.js'
 import Coupon from '../models/coupon.js'
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
+import { createOrder } from "./user.js"
 
 const PaymentInstance = new Razorpay({
     key_id : process.env.RAZORPAY_API_KEY,
@@ -11,32 +12,39 @@ const PaymentInstance = new Razorpay({
 })
 
 const createRazorpayOrder = async (req, res)=> {
-    console.log(req.body)
-    const {couponApplied} = req.body;
-    // 1. Find the user
-    const user = await User.findOne({email : req.user.email}).exec()
-    // 2. Get user cart total and total after discount
-    const {cartTotal, totalAfterDiscount} = await Cart.findOne({
-        orderedBy : user._id
-    }).exec()
-    console.log('Cart Total -> ', cartTotal)
-    console.log('Total After Discount -> ', totalAfterDiscount)
+    try{
+        console.log(req.body)
+        const {couponApplied} = req.body;
+        // 1. Find the user
+        const user = await User.findOne({email : req.user.email}).exec()
+        // 2. Get user cart total and total after discount
+        const {cartTotal, totalAfterDiscount} = await Cart.findOne({
+            orderedBy : user._id
+        }).exec()
+        console.log('Cart Total -> ', cartTotal)
+        console.log('Total After Discount -> ', totalAfterDiscount)
 
-    let finalAmount = cartTotal * 100;
-    if(couponApplied && totalAfterDiscount){
-        finalAmount = totalAfterDiscount*100
+        let finalAmount = cartTotal * 100;
+        if(couponApplied && totalAfterDiscount){
+            finalAmount = totalAfterDiscount*100
+        }
+        // calculate amount here later
+        const options = {
+            amount : finalAmount,
+            currency : "INR"
+        }
+        const order = await PaymentInstance.orders.create(options)
+        console.log('Order ---> ', order, null, 4)
+        res.status(200).json({
+            success : true,
+            order
+        })
+    }catch(err){
+        console.log(err)
+        res.status(400).json({
+            success : false
+        })
     }
-    // calculate amount here later
-    const options = {
-        amount : finalAmount,
-        currency : "INR"
-    }
-    const order = await PaymentInstance.orders.create(options)
-    console.log('Order ---> ', order, null, 4)
-    res.status(200).send({
-        success : true,
-        order
-    })
 }
 
 const verifyPayment = async (req, res)=> {
@@ -50,9 +58,11 @@ const verifyPayment = async (req, res)=> {
     const isAuthentic =  expectedSignature === razorpay_signature
     console.log('Authentic',isAuthentic)
     if(isAuthentic){
-        res.redirect(`${process.env.ECOMMERCE_URL}/user/paymentsuccess?reference=${razorpay_payment_id}`)
+        res.status(200).json({
+            success : true
+        })
     }else{
-        res.status(400).send({
+        res.status(400).json({
             success : false
         })
     }

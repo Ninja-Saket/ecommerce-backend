@@ -2,6 +2,7 @@ import User from '../models/user.js'
 import Product from '../models/product.js'
 import Cart from '../models/cart.js'
 import Coupon from '../models/coupon.js'
+import Order from '../models/order.js'
 
 const createUserCart = async (req, res) => {
     const {cart} = req.body
@@ -84,10 +85,44 @@ const applyCouponToUserCart = async (req, res)=> {
     }
    
 }
+
+const createOrder = async (req, res) => {
+    try{
+        const {paymentData} = req.body
+        const user = await User.findOne({email : req.user.email}).exec();
+        const product = await Cart.findOne({orderedBy : user._id}).exec()
+        const {products} = product
+        const newOrder = await new Order({
+            products,
+            paymentData,
+            orderedBy : user._id
+        }).save()
+        // decrement quantity, increment sold
+        const bulkOption = products.map((item) => {
+            return {
+                updateOne : {
+                    filter : {_id : item.product._id},
+                    update : {$inc : {quantity : -item.count, sold : +item.count}}
+                }
+            }
+        })
+
+        const updated = await Product.bulkWrite(bulkOption, {new : true})
+        console.log("Product quantity and sold updated", updated)
+        console.log("New order", newOrder)
+        res.json({ok : true})
+    }catch(err){
+        console.log(err)
+        res.status(400).json({
+            err : err.message
+        })
+    }
+}
 export {
     createUserCart,
     getUserCart,
     emptyUserCart,
     saveUserAddress,
-    applyCouponToUserCart
+    applyCouponToUserCart,
+    createOrder
 }
