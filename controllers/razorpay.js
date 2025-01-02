@@ -69,4 +69,18 @@ const verifyPayment = async (req, res)=> {
     
 }
 
-export {createRazorpayOrder, verifyPayment}
+const getPaymentDetails = async(req, res)=> {
+    try{
+        const result = await PaymentInstance.payments.fetch(req.body.razorpay_payment_id)
+        console.log('Payment Details -> ', result)
+        res.json(result)
+    }catch(err){
+        console.log(err)
+        res.status(400).json({
+            err : err.message
+        })
+    }
+    
+}
+
+export {createRazorpayOrder, verifyPayment, getPaymentDetails}

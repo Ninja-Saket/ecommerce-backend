@@ -118,11 +118,26 @@ const createOrder = async (req, res) => {
         })
     }
 }
+
+const listOrders = async (req, res)=> {
+    try{
+        const user = await User.findOne({email : req.user.email}).exec()
+        const userOrders = await Order.find({orderedBy : user._id}).populate('products.product').exec()
+        res.json(userOrders)
+    }catch(err){
+        console.log(err)
+        res.status(400).json({
+            err : err.message
+        })
+    }
+}
+
 export {
     createUserCart,
     getUserCart,
     emptyUserCart,
     saveUserAddress,
     applyCouponToUserCart,
-    createOrder
+    createOrder,
+    listOrders
 }
