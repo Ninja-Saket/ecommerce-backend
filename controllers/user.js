@@ -3,6 +3,7 @@ import Product from '../models/product.js'
 import Cart from '../models/cart.js'
 import Coupon from '../models/coupon.js'
 import Order from '../models/order.js'
+import uniqid from 'uniqid'
 
 const createUserCart = async (req, res) => {
     const {cart} = req.body
@@ -122,7 +123,7 @@ const createOrder = async (req, res) => {
 const listOrders = async (req, res)=> {
     try{
         const user = await User.findOne({email : req.user.email}).exec()
-        const userOrders = await Order.find({orderedBy : user._id}).populate('products.product').exec()
+        const userOrders = await Order.find({orderedBy : user._id}).sort({createdAt : -1}).populate('products.product').exec()
         res.json(userOrders)
     }catch(err){
         console.log(err)
@@ -177,6 +178,58 @@ const removeFromWishlist = async (req, res) => {
     }
 }
 
+const createCodOrder = async (req, res)=> {
+    try{
+        const {cod, coupon} = req.body
+        if(!cod){
+            return res.status(400).json({
+                err : 'Create cod order failed'
+            })
+        }
+        const user = await User.findOne({email : req.user.email}).exec();
+        const userCart = await Cart.findOne({orderedBy : user._id}).exec()
+        const {products} = userCart
+        let finalAmount = userCart.cartTotal*100
+        if(coupon && userCart.totalAfterDiscount){
+            finalAmount = userCart.totalAfterDiscount*100
+        }
+    
+        const paymentData = {
+            id : uniqid(),
+            amount : finalAmount,
+            currency : "INR",
+            status : "Cash On Delivery",
+            created_at : Date.now(),
+            method : 'cod',
+        }
+        const newOrder = await new Order({
+            products,
+            paymentData,
+            orderedBy : user._id,
+            orderStatus : "Cash On Delivery"
+        }).save()
+        // decrement quantity, increment sold
+        const bulkOption = products.map((item) => {
+            return {
+                updateOne : {
+                    filter : {_id : item.product._id},
+                    update : {$inc : {quantity : -item.count, sold : +item.count}}
+                }
+            }
+        })
+
+        const updated = await Product.bulkWrite(bulkOption, {new : true})
+        console.log("Product quantity and sold updated", updated)
+        console.log("New order", newOrder)
+        res.json({ok : true})
+    }catch(err){
+        console.log(err)
+        res.status(400).json({
+            err : err.message
+        })
+    }
+}
+
 export {
     createUserCart,
     getUserCart,
@@ -187,5 +240,6 @@ export {
     listOrders,
     addToWishlist,
     wishlist,
-    removeFromWishlist
+    removeFromWishlist,
+    createCodOrder
 }

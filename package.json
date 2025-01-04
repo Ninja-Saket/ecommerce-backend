@@ -27,6 +27,7 @@
     "punycode": "^2.3.1",
     "razorpay": "^2.9.5",
     "slugify": "^1.6.6",
+    "uniqid": "^5.4.0",
     "whatwg-url": "^14.1.0"
   }
 }
