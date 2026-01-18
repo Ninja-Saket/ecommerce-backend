@@ -3,8 +3,8 @@ import { ChromaClient } from 'chromadb'
 // Initialize ChromaDB client
 const client = new ChromaClient({
   ssl: false,
-  host: "localhost",
-  port: 8001,
+  host: process.env.CHROMADB_HOST,
+  port: process.env.CHROMADB_PORT,
   headers: {},
 })
 
