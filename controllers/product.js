@@ -1,11 +1,25 @@
 import Product from "../models/product.js";
 import User from "../models/user.js";
 import slugify from "slugify";
+import { 
+  addProductEmbedding, 
+  updateProductEmbedding, 
+  deleteProductEmbedding,
+  semanticSearchProducts,
+  syncAllProducts
+} from "../services/embeddingService.js";
+import { generateAssistantResponse } from "../services/ragService.js";
 
 const create = async (req, res) => {
   try {
     req.body.slug = slugify(req.body.title);
     const newProduct = await new Product(req.body).save();
+    
+    // Add embedding to ChromaDB (non-blocking)
+    addProductEmbedding(newProduct).catch(err => 
+      console.error('Failed to add embedding:', err)
+    );
+    
     res.json(newProduct);
   } catch (err) {
     console.log(err);
@@ -25,6 +39,12 @@ const update = async (req, res) => {
       req.body,
       { new: true }
     ).exec();
+    
+    // Update embedding in ChromaDB (non-blocking)
+    updateProductEmbedding(updatedProduct).catch(err => 
+      console.error('Failed to update embedding:', err)
+    );
+    
     res.json(updatedProduct);
   } catch (err) {
     res.status(400).send({ err: err.message });
@@ -63,6 +83,14 @@ const remove = async (req, res) => {
     const deleted = await Product.findOneAndDelete({
       slug: req.params.slug,
     }).exec();
+    
+    // Delete embedding from ChromaDB (non-blocking)
+    if (deleted) {
+      deleteProductEmbedding(deleted._id).catch(err => 
+        console.error('Failed to delete embedding:', err)
+      );
+    }
+    
     res.json(deleted);
   } catch (err) {
     console.log(err);
@@ -296,4 +324,99 @@ const listWithSearchFilters = async (req, res) => {
   }
 }
 
-export { create, update, list, read, remove, sortedList, productsCount, productStar, listRelated, listRelatedByCategory, listRelatedBySubCategory, listWithSearchFilters};
+/**
+ * Semantic search for products using vector embeddings
+ */
+const semanticSearch = async (req, res) => {
+  try {
+    const { query, limit = 3 } = req.body;
+    
+    if (!query) {
+      const result = await Product.find().populate('category').populate('subCategories').populate('ratings.postedBy').exec();
+      return res.json(result)
+    }
+    
+    // Get semantic search results from ChromaDB
+    const embeddingResults = await semanticSearchProducts(query, limit);
+    
+    // Fetch full product details from MongoDB
+    const productIds = embeddingResults.map(r => r.productId);
+    const products = await Product.find({ _id: { $in: productIds } })
+      .populate('category')
+      .populate('subCategories')
+      .populate('ratings.postedBy')
+      .exec();
+    
+    // Create a map for quick lookup
+    const productMap = new Map();
+    products.forEach(product => {
+      productMap.set(product._id.toString(), product);
+    });
+    
+    // Combine results with similarity scores, preserving order from embeddingResults
+    const results = embeddingResults.map(embeddingResult => {
+      const product = productMap.get(embeddingResult.productId);
+      if (!product) return null;
+      
+      return {
+        ...product.toObject(),
+        similarityScore: 1 - embeddingResult.distance,
+        distance: embeddingResult.distance
+      };
+    }).filter(Boolean); // Remove any null entries
+    
+    return res.json(results);
+  } catch (err) {
+    console.error('Semantic search error:', err);
+    return res.status(400).send({ error: 'Semantic search failed', message: err.message });
+  }
+};
+
+/**
+ * Sync all products to ChromaDB
+ */
+const syncEmbeddings = async (req, res) => {
+  try {
+    const products = await Product.find({})
+      .populate('category')
+      .exec();
+    
+    const result = await syncAllProducts(products);
+    
+    res.json({
+      message: 'Sync completed',
+      ...result
+    });
+  } catch (err) {
+    console.error('Sync embeddings error:', err);
+    res.status(400).send({ error: 'Sync failed', message: err.message });
+  }
+};
+
+/**
+ * AI Shopping Assistant - RAG-based chat endpoint
+ */
+const chatAssistant = async (req, res) => {
+  try {
+    const { query, conversationHistory = [] } = req.body;
+    
+    if (!query || query.trim() === '') {
+      return res.status(400).json({ error: 'Query is required' });
+    }
+    
+    console.log('Chat Assistant Query:', query);
+    
+    // Generate response using RAG (Retrieval-Augmented Generation)
+    const response = await generateAssistantResponse(query, conversationHistory);
+    
+    res.json(response);
+  } catch (err) {
+    console.error('Chat assistant error:', err);
+    res.status(500).json({ 
+      error: 'Failed to generate response', 
+      message: err.message 
+    });
+  }
+};
+
+export { create, update, list, read, remove, sortedList, productsCount, productStar, listRelated, listRelatedByCategory, listRelatedBySubCategory, listWithSearchFilters, semanticSearch, syncEmbeddings, chatAssistant};

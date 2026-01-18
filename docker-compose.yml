@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # ChromaDB Vector Database
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: ecommerce-chromadb
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    volumes:
+      - chromadb_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    networks:
+      - ecommerce-network
+
+  # Node.js Server
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce-server
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - PORT=${PORT}
+      # Firebase Configuration
+      - FIREBASE_ACCOUNT_TYPE=${FIREBASE_ACCOUNT_TYPE}
+      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+      - FIREBASE_PRIVATE_KEY_ID=${FIREBASE_PRIVATE_KEY_ID}
+      - FIREBASE_PRIVATE_KEY=${FIREBASE_PRIVATE_KEY}
+      - FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL}
+      - FIREBASE_CLIENT_ID=${FIREBASE_CLIENT_ID}
+      - FIREBASE_AUTH_URI=${FIREBASE_AUTH_URI}
+      - FIREBASE_TOKEN_URI=${FIREBASE_TOKEN_URI}
+      - FIREBASE_AUTH_PROVIDER_URL=${FIREBASE_AUTH_PROVIDER_URL}
+      - FIREBASE_CLIENT_URL=${FIREBASE_CLIENT_URL}
+      - FIREBASE_UNIVERSE_DOMAIN=${FIREBASE_UNIVERSE_DOMAIN}
+      # Cloudinary Configuration
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      # Razorpay Configuration
+      - RAZORPAY_API_KEY=${RAZORPAY_API_KEY}
+      - RAZORPAY_API_SECRET=${RAZORPAY_API_SECRET}
+      # ChromaDB Configuration
+      - CHROMADB_HOST=${CHROMADB_HOST}
+      - CHROMADB_PORT=${CHROMADB_PORT}
+      # Other Configuration
+      - ECOMMERCE_URL=${ECOMMERCE_URL}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    depends_on:
+      - chromadb
+    networks:
+      - ecommerce-network
+    volumes:
+      - ./logs:/app/logs
+
+volumes:
+  chromadb_data:
+    driver: local
+
+networks:
+  ecommerce-network:
+    driver: bridge
