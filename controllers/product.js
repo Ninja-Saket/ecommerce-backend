@@ -8,6 +8,7 @@ import {
   semanticSearchProducts,
   syncAllProducts
 } from "../services/embeddingService.js";
+import { generateAssistantResponse } from "../services/ragService.js";
 
 const create = async (req, res) => {
   try {
@@ -392,4 +393,30 @@ const syncEmbeddings = async (req, res) => {
   }
 };
 
-export { create, update, list, read, remove, sortedList, productsCount, productStar, listRelated, listRelatedByCategory, listRelatedBySubCategory, listWithSearchFilters, semanticSearch, syncEmbeddings};
+/**
+ * AI Shopping Assistant - RAG-based chat endpoint
+ */
+const chatAssistant = async (req, res) => {
+  try {
+    const { query, conversationHistory = [] } = req.body;
+    
+    if (!query || query.trim() === '') {
+      return res.status(400).json({ error: 'Query is required' });
+    }
+    
+    console.log('Chat Assistant Query:', query);
+    
+    // Generate response using RAG (Retrieval-Augmented Generation)
+    const response = await generateAssistantResponse(query, conversationHistory);
+    
+    res.json(response);
+  } catch (err) {
+    console.error('Chat assistant error:', err);
+    res.status(500).json({ 
+      error: 'Failed to generate response', 
+      message: err.message 
+    });
+  }
+};
+
+export { create, update, list, read, remove, sortedList, productsCount, productStar, listRelated, listRelatedByCategory, listRelatedBySubCategory, listWithSearchFilters, semanticSearch, syncEmbeddings, chatAssistant};

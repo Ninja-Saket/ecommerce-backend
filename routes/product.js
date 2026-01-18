@@ -3,7 +3,7 @@ const router = express.Router()
 // middlewares
 import {authCheck, adminCheck} from '../middlewares/auth.js'
 // controllers
-import { create,update,list,read,remove, sortedList, productsCount, productStar, listRelated, listRelatedByCategory, listRelatedBySubCategory, listWithSearchFilters, semanticSearch, syncEmbeddings } from '../controllers/product.js'
+import { create,update,list,read,remove, sortedList, productsCount, productStar, listRelated, listRelatedByCategory, listRelatedBySubCategory, listWithSearchFilters, semanticSearch, syncEmbeddings, chatAssistant } from '../controllers/product.js'
 // route
 
 router.post('/product', authCheck, adminCheck, create)
@@ -20,5 +20,6 @@ router.get('/product/relatedbysubcategory/:subCategoryId', listRelatedBySubCateg
 router.post('/product/search/filters', listWithSearchFilters)
 router.post('/product/semantic-search', semanticSearch)
 router.post('/product/sync-embeddings', authCheck, adminCheck, syncEmbeddings)
+router.post('/product/chat-assistant', chatAssistant) // AI Shopping Assistant
 
 export default router
