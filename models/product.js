@@ -61,7 +61,10 @@ const productSchema = new mongoose.Schema({
                 ref : "User"
             }
         }
-    ]
+    ],
+    keySpecifications: {
+        type: mongoose.Schema.Types.Mixed
+    },
 }, {timestamps : true})
 
 productSchema.index({

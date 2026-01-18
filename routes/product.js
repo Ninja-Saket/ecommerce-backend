@@ -3,7 +3,7 @@ const router = express.Router()
 // middlewares
 import {authCheck, adminCheck} from '../middlewares/auth.js'
 // controllers
-import { create,update,list,read,remove, sortedList, productsCount, productStar, listRelated, listRelatedByCategory, listRelatedBySubCategory, listWithSearchFilters } from '../controllers/product.js'
+import { create,update,list,read,remove, sortedList, productsCount, productStar, listRelated, listRelatedByCategory, listRelatedBySubCategory, listWithSearchFilters, semanticSearch, syncEmbeddings } from '../controllers/product.js'
 // route
 
 router.post('/product', authCheck, adminCheck, create)
@@ -18,5 +18,7 @@ router.get('/product/related/:productId', listRelated)
 router.get('/product/relatedbycategory/:categoryId', listRelatedByCategory)
 router.get('/product/relatedbysubcategory/:subCategoryId', listRelatedBySubCategory)
 router.post('/product/search/filters', listWithSearchFilters)
+router.post('/product/semantic-search', semanticSearch)
+router.post('/product/sync-embeddings', authCheck, adminCheck, syncEmbeddings)
 
 export default router
