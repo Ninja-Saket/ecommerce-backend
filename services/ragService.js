@@ -32,7 +32,7 @@ const formatSpecifications = (specs) => {
 const buildPrompt = (userQuery, products) => {
   const productContext = products.map((product, index) => {
     const specs = formatSpecifications(product.keySpecifications);
-    const price = product.price ? `$${product.price}` : 'Price not available';
+    const price = product.price ? `Rs.${product.price}` : 'Price not available';
     
     return `${index + 1}. ${product.title} - ${price}
    Category: ${product.category?.name || 'N/A'}
